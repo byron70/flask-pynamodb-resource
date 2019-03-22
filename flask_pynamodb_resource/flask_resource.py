@@ -1,9 +1,7 @@
 import logging
-from ujson import dumps
 
 from flask import request
-from flask_restful import Api, Resource
-from flask_restful.representations import json as restful_json
+from flask_restplus import Resource
 from pynamodb.attributes import Attribute
 from pynamodb.indexes import Index
 from pynamodb.models import Model
@@ -12,7 +10,6 @@ from pynamodb.exceptions import PutError
 from six import string_types
 
 logger = logging.getLogger(__name__)
-restful_json.dumps = dumps
 
 
 class IndexResource(Resource):
@@ -82,8 +79,6 @@ class ModelResource(Resource):
 
     @classmethod
     def register(cls, app, route_prefix=None):
-        api = Api(app)
-
         if route_prefix:
             cls.route_prefix = route_prefix
 
@@ -95,9 +90,9 @@ class ModelResource(Resource):
                 item_obj = getattr(cls.model, item)
                 index_cls = indexresource_factory(item_obj, item)
                 index_cls.route_prefix = cls.route_prefix
-                api.add_resource(index_cls, *index_cls.build_routes())
+                app.add_resource(index_cls, *index_cls.build_routes())
 
-        api.add_resource(cls, *cls.build_routes())
+        app.add_resource(cls, *cls.build_routes())
 
     @classmethod
     def build_routes(cls):
